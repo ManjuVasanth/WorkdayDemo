@@ -1,0 +1,210 @@
+{
+ "INT_Demo_Inbound_Studio": [
+  {
+   "type": "workday_in",
+   "props": {
+    "service": "INT_Demo_Inbound_Studio",
+    "launch_params": "pay_period=2026-06-30"
+   }
+  },
+  {
+   "type": "local_in",
+   "props": {
+    "filename": "payroll_inputs.csv"
+   }
+  },
+  {
+   "type": "mediation",
+   "props": {
+    "name": "ParseInputFile",
+    "on_error": "stop"
+   },
+   "bp": true
+  },
+  {
+   "type": "store",
+   "props": {
+    "label": "input-file"
+   }
+  },
+  {
+   "type": "csv_to_xml",
+   "props": {
+    "delimiter": ","
+   },
+   "bp": true
+  },
+  {
+   "type": "splitter",
+   "props": {
+    "element": "Row"
+   }
+  },
+  {
+   "type": "xslt",
+   "props": {
+    "stylesheet": "<?xml version=\"1.0\"?>\n<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n<xsl:output method=\"xml\"/>\n<xsl:template match=\"/Row\">\n<env:Envelope xmlns:env=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wd=\"urn:com.workday/bsvc\"><env:Body>\n<wd:Submit_Payroll_Input_Request wd:version=\"v42.0\">\n  <wd:Payroll_Input_Data>\n    <wd:Worker_Reference><wd:ID wd:type=\"Employee_ID\"><xsl:value-of select=\"Employee_ID\"/></wd:ID></wd:Worker_Reference>\n    <wd:Pay_Component><xsl:value-of select=\"Pay_Component\"/></wd:Pay_Component>\n    <wd:Amount><xsl:value-of select=\"Amount\"/></wd:Amount>\n  </wd:Payroll_Input_Data>\n</wd:Submit_Payroll_Input_Request>\n</env:Body></env:Envelope>\n</xsl:template></xsl:stylesheet>"
+   }
+  },
+  {
+   "type": "wd_out_soap",
+   "props": {
+    "service": "Payroll",
+    "operation": "Submit_Payroll_Input",
+    "send_message": "true"
+   }
+  },
+  {
+   "type": "aggregator",
+   "props": {
+    "wrapper": "Responses"
+   }
+  },
+  {
+   "type": "mediation",
+   "props": {
+    "name": "FinalizeRun",
+    "on_error": "stop"
+   }
+  },
+  {
+   "type": "pim",
+   "props": {
+    "severity": "Info",
+    "message": "Inbound payroll load complete for period @{props.pay_period}"
+   }
+  },
+  {
+   "type": "write_file",
+   "props": {
+    "filename": "inbound_responses.xml"
+   }
+  }
+ ],
+ "INT_Gympass_OTP": [
+  {
+   "type": "workday_in",
+   "props": {
+    "service": "INT_Gympass_OTP",
+    "launch_params": "pay_period:date=2026-06-30\nsource:text=Gympass SFTP (PGP stub)"
+   }
+  },
+  {
+   "type": "wd_out_soap",
+   "props": {
+    "service": "Human_Resources",
+    "operation": "Get_Workers",
+    "count": "30"
+   }
+  },
+  {
+   "type": "eval",
+   "props": {
+    "script": "props['hashMap'] = vars.workerIds; vars.eligibleCount = size(props['hashMap'])"
+   }
+  },
+  {
+   "type": "local_in",
+   "props": {
+    "filename": "gympass_payments.csv"
+   }
+  },
+  {
+   "type": "mediation",
+   "props": {
+    "name": "ValidateAndParse",
+    "on_error": "stop"
+   }
+  },
+  {
+   "type": "store",
+   "props": {
+    "label": "gympass-input"
+   }
+  },
+  {
+   "type": "csv_to_xml",
+   "props": {
+    "delimiter": ","
+   }
+  },
+  {
+   "type": "splitter",
+   "props": {
+    "element": "Row"
+   }
+  },
+  {
+   "type": "route",
+   "props": {
+    "condition": "props['hashMap'] contains tagvalue('Employee_ID')"
+   }
+  },
+  {
+   "type": "xslt",
+   "props": {
+    "stylesheet": "<?xml version=\"1.0\"?>\n<xsl:stylesheet version=\"1.0\"\n    xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n<xsl:output method=\"xml\"/>\n<xsl:template match=\"/Row\">\n<env:Envelope xmlns:env=\"http://schemas.xmlsoap.org/soap/envelope/\"\n              xmlns:wd=\"urn:com.workday/bsvc\"><env:Body>\n<wd:Request_One_Time_Payment_Request wd:version=\"v42.0\">\n  <wd:One_Time_Payment_Data>\n    <wd:Employee_Reference>\n      <wd:ID wd:type=\"Employee_ID\"><xsl:value-of select=\"Employee_ID\"/></wd:ID>\n    </wd:Employee_Reference>\n    <wd:One_Time_Payment_Plan>\n      <xsl:value-of select=\"One_Time_Payment_Plan\"/>\n    </wd:One_Time_Payment_Plan>\n    <wd:Reason_Code><xsl:value-of select=\"Reason_Code\"/></wd:Reason_Code>\n    <wd:Amount><xsl:value-of select=\"Amount\"/></wd:Amount>\n    <wd:Currency><xsl:value-of select=\"Currency\"/></wd:Currency>\n    <wd:Effective_Date><xsl:value-of select=\"Effective_Date\"/></wd:Effective_Date>\n  </wd:One_Time_Payment_Data>\n</wd:Request_One_Time_Payment_Request>\n</env:Body></env:Envelope>\n</xsl:template></xsl:stylesheet>"
+   }
+  },
+  {
+   "type": "wd_out_soap",
+   "props": {
+    "service": "Compensation",
+    "operation": "Request_One_Time_Payment",
+    "send_message": "true"
+   }
+  },
+  {
+   "type": "aggregator",
+   "props": {
+    "wrapper": "Responses"
+   }
+  },
+  {
+   "type": "mediation",
+   "props": {
+    "name": "FinalizeRun",
+    "on_error": "stop"
+   }
+  },
+  {
+   "type": "pim",
+   "props": {
+    "severity": "Info",
+    "message": "Gympass OTP load complete for @{props.pay_period} (source: @{props.source})"
+   }
+  },
+  {
+   "type": "write_file",
+   "props": {
+    "filename": "gympass_responses.xml"
+   }
+  },
+  {
+   "type": "write_file",
+   "props": {
+    "filename": "gympass_errors.csv",
+    "content": "errors"
+   }
+  },
+  {
+   "type": "global_error_handler",
+   "props": {
+    "name": "glob_err"
+   }
+  },
+  {
+   "type": "log_error",
+   "props": {
+    "message": "Caught: @{vars._lasterror}"
+   }
+  },
+  {
+   "type": "send_error",
+   "props": {
+    "message": "Gympass integration failed: @{vars._lasterror}",
+    "mark_failed": "true"
+   }
+  }
+ ]
+}

@@ -1,0 +1,171 @@
+{
+  "id": "EmployeeDemographicOutbound_wdsmpl",
+  "name": "Employee Demographic Outbound",
+  "refId": "EmployeeDemographicOutbound_wdsmpl",
+  "appId": "c2b4e1d0f9a8",
+  "description": "Port of Workday App Catalog sample employeeDemographicOutbound (v2026.2): RaaS -> assert -> Loop -> Formatted CSV -> Store Document",
+  "created": "09/16/2026",
+  "createdBy": "Tony Gilfillan",
+  "orchestrations": {
+    "EmployeeDemographicFull": {
+      "name": "EmployeeDemographicFull",
+      "type": "Workday Integration System",
+      "lastBuild": null,
+      "steps": [
+        {
+          "id": "ed_init",
+          "type": "create-values",
+          "ref": "initializeAttributes",
+          "props": {
+            "values": [
+              {
+                "name": "workersEmployeeIds",
+                "sourceRef": "Input.Workers",
+                "jsonPath": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "ed_msg1",
+          "type": "send-integration-message",
+          "ref": "reportProcessingStarted",
+          "props": {
+            "severity": "INFO",
+            "summary": "EmployeeDemographicFull started."
+          }
+        },
+        {
+          "id": "ed_len",
+          "type": "continue-on-conditions",
+          "ref": "workersQueryParamTooLong",
+          "props": {
+            "assertions": [
+              {
+                "expr": "data.Input.Workers.isBlank().or(data.Input.Workers.length().lessThanOrEquals(2000))",
+                "message": "Workers!Employee_ID query parameter exceeds maximum length 2000. RaaS REST query strings are limited to approximately 2083 characters."
+              }
+            ]
+          },
+          "body": []
+        },
+        {
+          "id": "ed_raas",
+          "type": "send-workday-raas-request",
+          "ref": "fetchDemographicsReport",
+          "props": {
+            "method": "GET",
+            "urlPrefix": "http://localhost:8443/ccx/service/customreport2/SUPER_TENANT/ISU_Demo/",
+            "path": "CRT_INT_Worker_Demographics?format=json",
+            "auth": "Access Token from Initiating User",
+            "contentType": "Any",
+            "queryParams": [
+              {
+                "key": "Workers!Employee_ID",
+                "value": "{Input.Workers}"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ed_chk",
+          "type": "continue-on-conditions",
+          "ref": "missingDemographicsReportData",
+          "props": {
+            "assertions": [
+              {
+                "expr": "data.fetchDemographicsReport.responseStatusCode.is2xxStatusCode()",
+                "message": "Workers Report request failed with HTTP {fetchDemographicsReport.responseStatusCode}"
+              },
+              {
+                "expr": "data.fetchDemographicsReport.response.countItemsAtJsonPath(\"$.Report_Entry\").greaterThan(0)",
+                "message": "Workers Report returned no Report_Entry rows"
+              }
+            ]
+          },
+          "body": []
+        },
+        {
+          "id": "ed_loop",
+          "type": "loop",
+          "ref": "demographicReportEntries",
+          "props": {
+            "dataType": "AutoType Iterator",
+            "dataSetRef": "fetchDemographicsReport.response",
+            "dataSetPath": "$.Report_Entry[*]",
+            "filterPath": "",
+            "sortBy": [],
+            "locale": ""
+          },
+          "body": [
+            {
+              "id": "ed_log",
+              "type": "log",
+              "ref": "mapDemographicFields",
+              "props": {
+                "messageRef": "Loop.item.employeeId",
+                "condition": "true",
+                "message": "Loop.item.employeeId"
+              }
+            }
+          ],
+          "aggregation": {
+            "ref": "Aggregate_demographicReportEntries",
+            "outputs": [
+              {
+                "name": "outputFile",
+                "strategy": "CSV",
+                "outputType": "Text",
+                "csvColumns": "employeeId, prefFirstName, legalFirstName, legalLastName, workEmail, hireDate, origHireDate, terminationDate, payRateType, timeType, workerType, managerId, location, positionId, costCenter, payGroup, jobCode, businessTitle",
+                "csvDelimiter": ",",
+                "csvHeader": false,
+                "initialValue": [],
+                "nextValue": [],
+                "jsonFragment": [],
+                "condition": []
+              }
+            ],
+            "failWhenNoInputs": false,
+            "earlyStop": null,
+            "errorHandler": false,
+            "deleted": false
+          }
+        },
+        {
+          "id": "ed_store",
+          "type": "store-document",
+          "ref": "storeOutboundFile",
+          "props": {
+            "documentToStore": [
+              {
+                "t": "ref",
+                "v": "Aggregate_demographicReportEntries.outputFile"
+              }
+            ],
+            "documentTitle": [
+              {
+                "t": "string",
+                "v": "EmployeeDemographic.csv"
+              }
+            ],
+            "description": [],
+            "collection": [],
+            "expiresIn": "7",
+            "expiresUnit": "Days",
+            "attachToEvent": "true",
+            "deliver": "false"
+          }
+        },
+        {
+          "id": "ed_msg2",
+          "type": "send-integration-message",
+          "ref": "reportProcessingComplete",
+          "props": {
+            "severity": "INFO",
+            "summary": "EmployeeDemographicFull completed. Output file: EmployeeDemographic.csv"
+          }
+        }
+      ]
+    }
+  }
+}

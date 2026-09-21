@@ -1,0 +1,4 @@
+Employee_ID,Employee_Name,One_Time_Payment_Plan,Reason_Code,Amount,Currency,Effective_Date,Error_Reason
+"88888","Ghost Worker","Gympass 5-Year Award","SVC5YR","100.00","USD","2026-06-30","Validation failed - routed to invalid path (router)"
+"99999","Fault Row","Gympass 5-Year Award","SVC5YR","100.00","USD","2026-06-30","Validation failed - routed to invalid path (router)"
+"21005","Vikram Rao","Gympass 5-Year Award","SVC5YR","1OO.OO","USD","2026-06-30","Web service fault: Validation error occurred. Invalid amount value 'None' for element 'Amount'. A decimal value is required."

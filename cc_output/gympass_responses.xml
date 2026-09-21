@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Responses>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+    <wd:Request_One_Time_Payment_Response xmlns:wd="urn:com.workday/bsvc" wd:version="v42.0">
+      <wd:Event_Reference>
+        <wd:ID wd:type="WID">ONE_TIME_PAYMENT_EVENT-1001</wd:ID>
+      </wd:Event_Reference>
+    </wd:Request_One_Time_Payment_Response>
+  </env:Body>
+</env:Envelope>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+    <wd:Request_One_Time_Payment_Response xmlns:wd="urn:com.workday/bsvc" wd:version="v42.0">
+      <wd:Event_Reference>
+        <wd:ID wd:type="WID">ONE_TIME_PAYMENT_EVENT-1002</wd:ID>
+      </wd:Event_Reference>
+    </wd:Request_One_Time_Payment_Response>
+  </env:Body>
+</env:Envelope>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Body>
+    <wd:Request_One_Time_Payment_Response xmlns:wd="urn:com.workday/bsvc" wd:version="v42.0">
+      <wd:Event_Reference>
+        <wd:ID wd:type="WID">ONE_TIME_PAYMENT_EVENT-1003</wd:ID>
+      </wd:Event_Reference>
+    </wd:Request_One_Time_Payment_Response>
+  </env:Body>
+</env:Envelope>
+<Record_Error employee-part="see-request-below">Validation error occurred. Invalid amount value 'None' for element 'Amount'. A decimal value is required.</Record_Error>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wd="urn:com.workday/bsvc"><env:Body><wd:Request_One_Time_Payment_Request wd:version="v42.0"><wd:One_Time_Payment_Data><wd:Employee_Reference><wd:ID wd:type="Employee_ID">21005</wd:ID></wd:Employee_Reference><wd:One_Time_Payment_Plan>Gympass 5-Year Award</wd:One_Time_Payment_Plan><wd:Reason_Code>SVC5YR</wd:Reason_Code><wd:Amount>1OO.OO</wd:Amount><wd:Currency>USD</wd:Currency><wd:Effective_Date>2026-06-30</wd:Effective_Date></wd:One_Time_Payment_Data></wd:Request_One_Time_Payment_Request></env:Body></env:Envelope>
+
+</Responses>

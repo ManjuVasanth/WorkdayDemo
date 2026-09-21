@@ -1,0 +1,37 @@
+{
+  "orgs": {
+    "FIN_OPS_1001": {
+      "code": "FIN_OPS_1001",
+      "name": "Finance Operations Team",
+      "wid": "SUPORG_WID_64356124E37B5D98",
+      "manager": "John Smith",
+      "subtype": "Department",
+      "superior": "FINANCE_PARENT_ORG",
+      "staffing": "Job Management",
+      "location": "USA_DALLAS",
+      "created": "2026-06-29 12:27:05"
+    },
+    "FIN_OPS_1002": {
+      "code": "FIN_OPS_1002",
+      "name": "Finance Operations Team",
+      "wid": "SUPORG_WID_A13144FB268509F8",
+      "manager": "John Smith",
+      "subtype": "Department",
+      "superior": "FINANCE_PARENT_ORG",
+      "staffing": "Job Management",
+      "location": "USA_DALLAS",
+      "created": "2026-06-29 13:42:25"
+    },
+    "{Input.SupOrgCode}": {
+      "code": "{Input.SupOrgCode}",
+      "name": "{Input.SupOrgName}",
+      "wid": "SUPORG_WID_8EE225FD219A4FBC",
+      "manager": "{Input.Manager}",
+      "subtype": "{Input.OrgSubtype}",
+      "superior": "{Input.SuperiorOrg}",
+      "staffing": "{Input.StaffingModel}",
+      "location": "{Input.PrimaryLocation}",
+      "created": "2026-06-29 13:46:13"
+    }
+  }
+}
